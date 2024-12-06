@@ -1,0 +1,18 @@
+{
+  "name": "getaway",
+  "version": "1.0.0",
+  "description": "It is an getaway from where the all requests and response will get send.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon src/index.js"
+  },
+  "author": "Akash Kumar",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.1",
+    "express-http-proxy": "^2.1.1",
+    "nodemon": "^3.1.7"
+  }
+}

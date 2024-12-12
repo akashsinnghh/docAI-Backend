@@ -1,5 +1,5 @@
 const { UserRepository } = require("../database");
-const { FormateData, GeneratePassword, GenerateSalt, GenerateSignature, ValidatePassword } = require('../utils');
+const { FormateData, GeneratePassword, GenerateSalt, GenerateSignature, ValidatePassword, FormateMessage } = require('../utils');
 // const { APIError, BadRequestError } = require('../utils/app-errors')
 
 
@@ -10,33 +10,44 @@ class UserService {
         this.repository = new UserRepository();
     }
 
-    async SignIn(userInputs){
-
+    async SignIn(userInputs) {
         const { email, password } = userInputs;
-        
+      
         try {
-            
-            const existingCustomer = await this.repository.FindCustomer({ email});
+          const existingCustomer = await this.repository.FindUser({ email });
+          console.log("existingCustomer in SignIn:", existingCustomer);
+      
+          if (existingCustomer) {
+            const validPassword = await ValidatePassword(
+              password,
+              existingCustomer.password,
+              existingCustomer.salt
+            );
 
-            if(existingCustomer){
-            
-                const validPassword = await ValidatePassword(password, existingCustomer.password, existingCustomer.salt);
-                
-                if(validPassword){
-                    const token = await GenerateSignature({ email: existingCustomer.email, _id: existingCustomer._id});
-                    return FormateData({id: existingCustomer._id, token });
-                } 
+            console.log("validPassword:", validPassword);
+      
+            if (validPassword) {
+              const token = await GenerateSignature({
+                email: existingCustomer.email,
+                _id: existingCustomer._id,
+              });
+              return FormateData({ id: existingCustomer._id, token });
+            } else {
+              return FormateData({message: "Incorrect password",})
             }
-    
-            return FormateData(null);
-
+          }
+      
+          // User not found
+          return FormateData({message: "User not found"})
         } catch (err) {
-            console.error("error",err);
-            throw new Error("Error while signing in");
+          console.error("Error in SignIn:", err);
+      
+          return {
+            message: "An error occurred while signing in",
+          };
         }
-
-       
-    }
+      }
+      
 
     async SignUp(userInputs){
         
@@ -48,9 +59,9 @@ class UserService {
             
             let userPassword = await GeneratePassword(password, salt);
             
-            const existingCustomer = await this.repository.RegisterUser({ name, email, password: userPassword, phone, salt});
-            
-            const token = await GenerateSignature({ email: email, _id: existingCustomer._id});
+            const token = await GenerateSignature({ email: email, _id: phone});
+
+            const existingCustomer = await this.repository.RegisterUser({ name, email, password: userPassword, phone, salt, token});
 
             return FormateData({id: existingCustomer._id, token });
 

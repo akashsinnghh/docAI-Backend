@@ -7,6 +7,8 @@ const UserRegisterSchema = new Schema({
     email: { type: String, unique: true },
     password: { type: String },
     phone: { type: String },
+    token: { type: String},
+    salt: { type: String},
 });
 
 module.exports =  mongoose.model('UserRegisterSchema', UserRegisterSchema);
